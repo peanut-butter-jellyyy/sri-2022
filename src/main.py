@@ -1,38 +1,59 @@
-#spaCy Code Initialization:
-import spacy
+from parse import parse_documents, parse_queries,parse_relevancies
+from structs import Corpus
+from evaluation import evaluate_metrics
 
-nlp = spacy.load('en_core_web_sm')
-
-#file1 = open("/home/sandra/Desktop/Proyecto Final SRI/PF SRI/Test Collections/cran/cran.all.1400","r+")
-file1 = open("cran.all.1400","r+")
-
-
-str1 = file1.read()
-nlp.max_length = 5030000
-
-
-doc = nlp(str1)
-lemma_list = []
-
-for token in doc:
-    lemma_list.append(token.lemma_)
+if __name__ == '__main__':
+    #_docs_path = ("test_docs.txt")
+    #_queries_path = ("test_queries.txt")
+    #_relevancies_path = ("test_relevancies.txt")
     
-print("Tokenize+Lemmatize:")
-print(lemma_list)
-   
-#Filter the stopword
-filtered_sentence =[] 
-for word in lemma_list:
-    lexeme = nlp.vocab[word]
-    if lexeme.is_stop == False:
-        filtered_sentence.append(word) 
-   
-#Remove punctuation
-punctuations="?:!.,;"
-for word in filtered_sentence:
-    if word in punctuations:
-        filtered_sentence.remove(word)
-
-print(" ")
-print("Remove stopword & punctuation: ")
-print(filtered_sentence)
+    _docs_path = ("cran.all.1400")
+    _queries_path = ("cran.qry")
+    _relevancies_path = ("cranqrel")
+    
+    document_list = parse_documents(_docs_path)
+    queries = parse_queries(_queries_path)
+    relevancies = parse_relevancies(_relevancies_path) 
+    
+    corpus = Corpus(document_list)
+    corpus.tokenize()
+    corpus.lemmatize()
+    corpus.set_freq_values()
+    corpus.set_weight_values()
+    
+    for query in queries:
+        query.tokenize()
+        query.lemmatize()
+    
+    p,r,f,f1 = evaluate_metrics(corpus,queries,relevancies,1.2)
+    
+    print("------Evaluation------")
+    print("Precision: ",p)
+    print("Recall: ",r)
+    print("F metric: ",f)
+    print("F1 metric: ",f1)
+    
+    
+    
+    
+    #print("-----------Queries------------------------")
+    #for q in queries:
+    #    q.tokenize()
+    #    q.lemmatize()
+    #    print(q.tokens)
+    #    print("--------------------------------")
+    #    print(q.terms_vector)
+    #    q.set_weight_values(corpus)
+    #    print("--------------------------------")
+    #    print(q.weights)
+    #    print("######################################################")
+         
+    #print("-----------Documents------------------------")
+    #for d in document_list:
+    #    print(d.terms_vector)
+    #    print("--------------------------------")
+    #    print(d.weights)
+    #    print("######################################################")
+        
+        
+    
