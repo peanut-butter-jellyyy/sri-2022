@@ -1,17 +1,37 @@
-from measures import precision,recall,f,f1
+from measures import eval_measures
 import pickle
 import os
 
-def run_boolean(corpus,queries,relevancies):
+def run_boolean(corpus,queries,relevancies,oneQ=False):
     
     recovered = recover(corpus, queries)
-    p,r,f,f1 = eval_measures(queries,recovered,relevancies,1.2)
+    _result = ""
     
-    print("------Boolean Model Evaluation------")
-    print("Precision: ",p)
-    print("Recall: ",r)
-    print("F metric: ",f)
-    print("F1 metric: ",f1)
+    if oneQ:
+        _result += "Documents by id retrieved using Boolean Model \n"
+        for q in queries:
+            try:
+                _result += " ".join(str(x) for x in recovered[q.id])
+            except:
+                _result += "Nothing was retrieved\n"
+            
+        return _result
+    
+    p,r,f,f1 = eval_measures(queries,recovered,relevancies,1.2)
+
+    
+    _result += "Boolean Model Evaluation\n"
+    _result += "Precision: "+ str(p) +"\n"
+    _result += "Recall: " + str(r) +"\n" 
+    _result += "F metric: " + str(f) +"\n"
+    _result += "F1 metric: "+ str(f1)+"\n"
+
+    return _result
+    
+    
+    
+    
+  
 
 
 
@@ -43,21 +63,6 @@ def recover(corpus,queries):
 
             
                              
-def eval_measures(queries,recovered,relevancies,beta = 1):
-    _precision,_recall,_f,_f1 = 0,0,0,0
-    for query in queries:
-        if query.id in recovered.keys() and query.id in relevancies.keys():             
-                rr = relevancies[query.id] & recovered[query.id]         
-                ri = recovered[query.id] - rr
-                nr = relevancies[query.id] - rr         
-
-                _precision += precision(rr,ri)
-                _recall += recall(rr,nr)
-                _f += f(beta,_precision,_recall)
-                _f1 += f1(_precision,_recall)
-
-    count = len(queries)
-    return _precision/count,_recall/count, _f/count,_f1/count
 
 
 

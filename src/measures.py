@@ -27,3 +27,19 @@ def f1(p,r):
         return 2/x
     except:
         return 0
+    
+def eval_measures(queries,recovered,relevancies,beta = 1):
+    _precision,_recall,_f,_f1 = 0,0,0,0
+    for query in queries:
+        if query.id in recovered.keys() and query.id in relevancies.keys():             
+                rr = relevancies[query.id] & recovered[query.id]         
+                ri = recovered[query.id] - rr
+                nr = relevancies[query.id] - rr         
+
+                _precision += precision(rr,ri)
+                _recall += recall(rr,nr)
+                _f += f(beta,_precision,_recall)
+                _f1 += f1(_precision,_recall)
+
+    count = len(queries)
+    return _precision/count,_recall/count, _f/count,_f1/count
