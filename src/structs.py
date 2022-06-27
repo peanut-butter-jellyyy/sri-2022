@@ -1,7 +1,12 @@
 
 import math
-from operator import le
-from cv2 import sort
+import re
+ 
+
+from nltk import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
+from spacy.lang.en.stop_words import STOP_WORDS
+
 
 import spacy
 
@@ -12,12 +17,11 @@ class Document:
         self.tokens = []
         self.terms_vector = {}
         self.weights = []
-        self.boolean_weights = {}
+        self.boolean_weight = {}
         self.max_freq = 1
         
 class Query:
-    def __init__(self,id = -1,text = "",nlp = spacy.load('en_core_web_sm')):
-        self.nlp = nlp
+    def __init__(self,id = -1,text = ""):
         self.id = id
         self.body = text
         self.tokens = []
@@ -26,29 +30,39 @@ class Query:
         self.boolean_weight = []
         self.max_freq = 1
         
+
     def tokenize(self):
-        self.nlp.max_length = 5030000
-        self.tokens = self.nlp(self.body)
+        for token in re.split(r'\W+', self.body.replace('.', '')):
+            if token != '':
+                self.tokens.append(token)
         
-        
-    def lemmatize(self):
-        punctuations="?:!.,;"
+    def stemmize(self):
+        snowball = SnowballStemmer(language='english')
         for token in self.tokens:
-            lemma = token.lemma_
-            aux = lemma.split(' ')
-            if len(aux)>1:
-                continue
-            #filtering stopwords
-            lexeme = self.nlp.vocab[lemma]
-            if not lexeme.is_stop and lemma not in punctuations:
-                #Frequency of the term in query
+            _stem = snowball.stem(token)
+            if not _stem in STOP_WORDS:
+                try:
+                    self.terms_vector[_stem] += 1
+                except:
+                    self.terms_vector[_stem] = 1
+                
+                if self.terms_vector[_stem] > self.max_freq:
+                    self.max_freq = self.terms_vector[_stem]
+                    
+    def lemmatize_(self):
+        lemmatizer = WordNetLemmatizer()
+        for token in self.tokens:
+            lemma = lemmatizer.lemmatize(token)
+            if not lemma in STOP_WORDS:
                 try:
                     self.terms_vector[lemma] += 1
-                    
-                    if self.terms_vector[lemma] > self.max_freq:
-                        self.max_freq = self.terms_vector[lemma]
-                except KeyError:
+                except:
                     self.terms_vector[lemma] = 1
+                    
+                if self.terms_vector[lemma] > self.max_freq:
+                    self.max_freq = self.terms_vector[lemma]
+        
+        
                     
     def  set_weight_values(self,document,corpus,alpha = 0.5):
         for term in document.terms_vector.keys():
@@ -63,57 +77,54 @@ class Query:
             self.weights.append(w)
         
         
-    def set_boolean_weight(self,corpus):
-        sorted_terms = sorted(self.terms)
-        for term in sorted_terms:
-            if term in self.terms_vector.keys():
-                self.boolean_weight.append(1)
-            else:
-                self.boolean_weight.append(0)
-                
-        
     
 class Corpus:
-    def __init__(self, document_list, nlp = spacy.load('en_core_web_sm')):
+    def __init__(self, document_list):
         self.documents = document_list
-        self.nlp = nlp
         #total number of documents
         self.N = len(document_list)
         #number of documents where term i appear
         self.n_i = {}
         self.terms = set()
-        self.boolean_Dict = {}
         
-        
-        
-        
+    
     def tokenize(self):
-        self.nlp.max_length = 5030000
         for document in self.documents:
-            document.tokens = self.nlp(document.body)
-        
-        
-    def lemmatize(self):
-        punctuations="?:!.,;"
+            for token in re.split(r'\W+', document.body.replace('.', '')):
+                if token != '':
+                    document.tokens.append(token)
+            
+    
+    def stemmize(self):
+        snowball = SnowballStemmer(language='english')
         for document in self.documents:
             for token in document.tokens:
-                lemma = token.lemma_
-                aux = lemma.split(' ')
-                if len(aux)>1:
-                    continue
-                #filtering stopwords
-                lexeme = self.nlp.vocab[lemma]
-                if not lexeme.is_stop and lemma not in punctuations:
-                    #Frequency of the term in the document
-                    self.terms.add(lemma)
+                _stem = snowball.stem(token)
+                if not _stem in STOP_WORDS:
                     try:
-                        document.terms_vector[lemma] += 1
+                        document.terms_vector[_stem]+=1
+                    except:
+                        self.terms.add(_stem)
+                        document.terms_vector[_stem]=1
                         
-                        if document.terms_vector[lemma] > document.max_freq:
-                            document.max_freq = document.terms_vector[lemma]
-                    except KeyError:
-                        document.terms_vector[lemma] = 1
+                    if document.terms_vector[_stem] > document.max_freq:
+                        document.max_freq = document.terms_vector[_stem]
+        
+    def lemmatize_(self):
+        lemmatizer = WordNetLemmatizer()
+        for document in self.documents:
+            for token in document.tokens:
+                lemma = lemmatizer.lemmatize(token)
+                if not lemma in STOP_WORDS:
+                    try:
+                        document.terms_vector[lemma]+=1
+                    except:
+                        self.terms.add(lemma)
+                        document.terms_vector[lemma]=1
                         
+                    if document.terms_vector[lemma] > document.max_freq:
+                        document.max_freq = document.terms_vector[lemma]
+        
                         
     def set_freq_values(self):
         for document in self.documents:
@@ -132,27 +143,8 @@ class Corpus:
                 document.weights.append(tf*idf)
           
         
-        
-    def set_boolean_weight(self):
-        sorted_terms = sorted(self.terms)
-        
-        for document in self.documents:
-            dummy_list = []
-           
-            for term in sorted_terms:
-                if term in document.terms_vector.keys():
-                    #document.boolean_weigth[term] = 1
-                    dummy_list.append(1)
-                else:
-                    dummy_list.append(0)
-                    
-                    #document.boolean_weigth[term] = 0
-            self.boolean_Dict[document.id] = dummy_list
-                    
-                    
-                
-                
-                
+                   
+                       
                 
                 
                 

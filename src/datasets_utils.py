@@ -1,19 +1,22 @@
 from structs import Document, Query
 import spacy
 
-def get_docs(dataset):
+def get_docs(dataset,name):
     document_list = []
     for doc in dataset.docs_iter():
-        body = doc.title + doc.text
+        if name == 'cranfield':
+            body = doc.title + doc.text
+        else:
+            body = doc.text
+        
         document_list.append(Document(int(doc.doc_id),body))
         
     return document_list
         
-def get_queries(dataset,n):
+def get_queries(dataset):
     queries = []
-    nlp = n
     for q in dataset.queries_iter():
-        queries.append(Query(int(q.query_id),q.text,nlp=nlp))
+        queries.append(Query(int(q.query_id),q.text))
         
     return queries
 
