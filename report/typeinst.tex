@@ -1,0 +1,228 @@
+
+%%%%%%%%%%%%%%%%%%%%%%% file typeinst.tex %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is the LaTeX source for the instructions to authors using
+% the LaTeX document class 'llncs.cls' for contributions to
+% the Lecture Notes in Computer Sciences series.
+% http://www.springer.com/lncs       Springer Heidelberg 2006/05/04
+%
+% It may be used as a template for your own input - copy it
+% to a new file with a new name and use it as the basis
+% for your article.
+%
+% NB: the document class 'llncs' has its own and detailed documentation, see
+% ftp://ftp.springer.de/data/pubftp/pub/tex/latex/llncs/latex2e/llncsdoc.pdf
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass[runningheads,a4paper]{llncs}
+
+\usepackage{amssymb}
+\setcounter{tocdepth}{3}
+\usepackage{graphicx}
+
+\usepackage{listings}
+\lstset{language=python}
+
+\usepackage{url}
+
+\urldef{\mailsa}\path|{amalia.ibarra,gabriela.martinez, sandra.martos}@estudiantes.matcom.uh.cu|    
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+\begin{document}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{Sistema de Recuperaci\'on de Informaci\'on}
+
+% a short form should be given in case it is too long for the running head
+\titlerunning{Sistema de Recuperaci\'on de Informaci\'on}
+
+% the name(s) of the author(s) follow(s) next
+%
+% NB: Chinese authors should write their first names(s) in front of
+% their surnames. This ensures that the names appear correctly in
+% the running heads and the author index.
+%
+\author{Amalia N. Ibarra Rodr\'iguez%
+\and Gabriela B. Mart\'inez Giraldo 
+\and Sandra Martos Llanes}
+%
+%\authorrunning{Lecture Notes in Computer Science: Authors' Instructions}
+% (feature abused for this document to repeat the title also on left hand pages)
+
+% the affiliations are given next; don't give your e-mail address
+% unless you accept that it will be published
+\institute{Universidad de La Habana,\\
+Cuba\\
+\mailsa}
+
+%
+% NB: a more complex sample for affiliations and the mapping to the
+% corresponding authors can be found in the file "llncs.dem"
+% (search for the string "\mainmatter" where a contribution starts).
+% "llncs.dem" accompanies the document class "llncs.cls".
+
+\maketitle
+
+
+
+
+ 
+\section{Introducci\'on}
+El mundo moderno se encuentra en momentos de constante desarrollo, nuevos descubrimientos y aumento exponencial de la cantidad de informaci\'on que se almacena, esta informaci\'on se traduce en datos, y obtener los datos requeridos desde una gran cantidad diferentes de fuentes se ha convertido en una tarea cr\'itica. Aqu\'i entran los Sistemas de Recuperaci\'on de Informaci\'on(SRI) que juegan un papel primordial en la recuperaci\'on de documentos que tengan valor para el usuari\'on, de la forma m\'as eficiente y precisa posible.
+
+Para este proyecto se desarroll\'o un sistema de recuperaci\'on de documentos que implementa dos modelos, el modelo vectorial y el modelo booleano, se evaluar\'an ambos utilizando distintos conjuntos de documentos con sus respectivas consultas, y se comprobar\'a cuan buenos son a trav\'es de medidas de evaluaci\'on objetivas.
+
+\section{Dise\~no}
+El proyecto fue implementado en python y cuenta 4 etapas fundamentales:
+\begin{enumerate}
+
+\item Procesamiento y representaci\'on del texto
+\item Modelo Vectorial
+\item Modelo Booleano
+\item Evaluaci\'on
+\end{enumerate}
+
+Se implementan tres clases principales:\textsf{Document}, \textsf{Query} y \textsf{Corpus}, esta \'ultima representa el conjunto de documentos de una set de datos, por los que almacena una lista de instancias de la clase \textsf{Document} .
+
+Las clases \textsf{Query} y \textsf{Corpus} cuentan con funciones para el procesamiento y representaci\'on del texto, as\'i como utilidades para la implementaci\'on de los modelos, todo esto se explicar\'a en las pr\'oximas secciones.
+
+\subsection{Procesamiento y representaci\'on}
+Se utiliza el m\'odulo  \textsf{ir\_datasets} para cargar los conjuntos de datos utilizados.
+Primero se lleva cada elemento del conjunto de datos, documentos,queries, y relevancia, a una representaci\'on c\'omoda: conjuntos de instancias de clases \textsf{Document}, \textsf{Query}, y luego un \textsf{Corpus}.\\
+
+
+Las clases  \textsf{Query} y \textsf{Corpus} conocen como procesar los datos, y aunque difieren en algunos aspectos la idea es la misma:
+
+
+Se utilza la biblioteca \textsf{re} y \textsf{nltk} que contiene un conjunto de m\'etodo \'utiles para el procesamiento del lenguaje natural, que cuenta con varias etapas.
+\begin{enumerate}
+\item \textbf{Tokenizaci\'on:} B\'asicamente separa por espacios y elimina algunos detalles de escritura obteniendo una lista de tokens que representan todas las palabras y signos del texto.
+\item \textbf{Stemming(Derivaci\'on):} El proceso de reducir una palabra a su formato de ra\'iz gramatical.
+\item \textbf{Lematizaci\'on:} La transformaci\'on que usa un diccionario para mapear la variante de una palabra a su formato ra\'iz gramatical
+\item Eliminaci\'on de $stopwords$
+\end{enumerate} 
+
+Esto se sintetiza en los m\'etodos: \textsf{tokenize} \textsf{stemmize} y \textsf{lemmatize\_} de las clases  \textsf{Query} y \textsf{Corpus}, dejando como resultado el conjunto de t\'erminos indexados para los documentos y queries.
+
+\subsection{Modelo Vectorial}
+
+Las clases  \textsf{Query} y \textsf{Document} poseen diccionarios que tienen informaci\'on sobre la frecuencia de cada t\'ermino en su query y documento respectivo, as\'i como la m\'axima frecuencia. 
+
+Se implementan m\'etodos para calcular la frecuencia normalizada($freq_{ij}$), la frecuencia de un t\'ermino en el corpus($idf_{i,j}$), el n\'umero de documentos donde aparace un t\'ermino $i$, ($idf_i$). Se implementaron estos c\'alculos de acuerdo a lo definido en conferencia.
+
+Estos valores se utilizaran luego para calcular el peso de un t\'ermino sobre un documento($w_{ij}$). 
+ 
+En una query para calcular la ponderaci\'on de sus t\'erminos se sigue la siguiente l\'inea:
+ 
+\begin{lstlisting}
+def  set_weight_values(self,document,corpus,alpha = 0.5):
+        for term in document.terms_vector.keys():
+            tf,idf = 0,0
+            if term in self.terms_vector.keys():
+                tf = self.terms_vector[term] / self.max_freq
+                
+                if term in corpus.n_i.keys():
+                    idf = math.log(corpus.N/ corpus.n_i[term])
+            
+            w = (alpha + ((1-alpha)*tf))*idf
+            self.weights.append(w)
+\end{lstlisting}
+
+
+Mientras que en el corpus:
+
+\begin{lstlisting}
+def set_weight_values(self):
+        for document in self.documents:
+            for term in document.terms_vector.keys():
+                tf = document.terms_vector[term] / document.max_freq
+                idf = math.log(self.N/self.n_i[term])
+                document.weights.append(tf*idf)
+\end{lstlisting}
+
+
+
+Luego se calcula la similitud de una query con cada documento de acuerdo a la f\'ormula de conferencia, y una vez hecho esto, se calcula la media de las similitudes y todo documento que posea una similitud por encima de la mitad de esta media es recuperado como relevante para dicha query.
+
+\subsection{Modelo Booleano}
+Un documento solo se considera relevante para una query si todos los t\'erminos de esta est\'an presentes en el documento,  por lo que se implementa de una forma bastante simple.
+
+\begin{lstlisting}
+def recover(corpus,queries):
+    recovered = {}
+    for document in corpus.documents:
+        for query in queries:
+            qlen = len(query.terms_vector.keys())
+            count = qlen
+            for qterm in query.terms_vector.keys():
+                if count < qlen:
+                    break
+                
+                if qterm in document.terms_vector.keys():
+                    count
+                else:
+                    count -= 1
+            
+            if count == qlen:
+                try:
+                    recovered[query.id].add(document.id)
+                except:
+                    recovered[query.id] = set()
+                    recovered[query.id].add(document.id)
+    return recovered
+\end{lstlisting}
+
+
+\section{Evaluaci\'on}
+Para la evaluaci\'on de estos modelos se utilizaron los conjuntos de datos Cranfield y Vaswani y las siguientes medidas:
+\begin{enumerate}
+\item Precisi\'on: Fracci\'on de los documentos recobrados que son relevantes.
+
+\item Recobrado: Fracci\'on de los documentos relevantes que fueron recuperados.
+
+\item Medida F: La Precis\'on y el Recobrado pueden ser a veces medidad contrarias, por lo que debe haber una forma de medirlos de manera integral. Se utiliza F como una media arm\'onica de la tasa de precisi\'on y la tasa de recobrado. En nuestro c\'alculo damos m\'as importancia a la precisi\'on haciendo $\beta=1.2$
+
+\item Medida F1: Es similar a F solo que le da igual importancia a la Precisi\'on y al Recobrado, mientras mayor sea F1 la prueba es m\'as exitosa.
+\end{enumerate}
+
+
+Obteniendo los siguientes resultados:
+
+
+\begin{table}[h]
+\caption{Cranfield} % title name of the table
+\centering
+\begin{tabular}{lllll}
+Modelo & Precisi\'on & Recobrado  &Medida F  &Medida F1\\[0.5ex]
+\hline
+Vectorial &  0.004 & 0.10 & 0.53 & 0.30 \\[0.5ex]
+\hline
+ Booleano & 0.0 & 0.0 & 0.0 &0.0   
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\caption{Vaswani} % title name of the table
+\centering
+\begin{tabular}{lllll}
+Modelo & Precisi\'on & Recobrado  &Medida F  &Medida F1\\[0.5ex]
+\hline
+Vectorial & 0.01 & 0.01 & 0.40 & 0.39 \\[0.5ex]
+\hline
+ Booleano & 0.0 & 0.0 & 0.0 &0.0     
+\end{tabular}
+\end{table}
+
+Como se puede apreciar el modelo booleano da terribles resultados, resultando las medidas en valor 0, esto es debido a que los documentos que se recuperaron no coinciden con los que conocemos que son relevantes, por tanto el conjunto de documentos Relevantes Recuperados es vac\'io, y como de \'el depende el \'exito de un SRI entonces podemos decir que el modelo Booleano es fallido al menos para los corpus analizados.\\
+
+El modelo vectorial arroja mejores resultados, sin embargo no son extremadamente buenos, creemos que perfeccionando el criterio de selecci\'on del umbral de similitud pueden mejorar significablemente. 
+
+
+
+
+\end{document}
