@@ -2,13 +2,13 @@
 import math
 import re
  
-
+import spacy
 from nltk import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
 
 
-import spacy
+
 
 class Document:
     def __init__(self,id = -1,text=""):

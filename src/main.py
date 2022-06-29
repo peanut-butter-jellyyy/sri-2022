@@ -1,11 +1,5 @@
 import streamlit as st
-import pandas as pd
 from analisis import analize_dataset,analize_single_query
-
-    
-
-
-        
 
 if __name__ == '__main__':
    
@@ -33,7 +27,6 @@ if __name__ == '__main__':
         for _st in out:    
             st.write(_st)
     else:
-        #analizar la query pero con el docs
         output = ""
         for ds in selected_options:
             _result = analize_single_query(ds,query)
@@ -44,15 +37,6 @@ if __name__ == '__main__':
             st.write(_st)
             
         
-
-    #output = ""
-
-    #output += analize_dataset('cranfield')
-    #output += "\n"
-    #output += analize_dataset('vaswani')
-    #
-    #print(output)
-
     
     
     
