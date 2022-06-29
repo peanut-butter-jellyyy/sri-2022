@@ -74,10 +74,10 @@ def recover(corpus,queries):
         if count > 0:
             mean_sim = total/count  
         
+        dummy = set()
         for id in similarity.keys():
             _sim = similarity[id]
             if _sim >= (mean_sim/2):
-            #if _sim>0.1:
                 try:
                     recovered[query.id].add(id)
                 except KeyError:

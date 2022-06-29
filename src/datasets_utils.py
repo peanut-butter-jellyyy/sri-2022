@@ -1,5 +1,4 @@
 from structs import Document, Query
-import spacy
 
 def get_docs(dataset,name):
     document_list = []

@@ -1,0 +1,5 @@
+streamlit==0.57.3
+nltk==3.6
+spacy==3.3.0
+pickle-mixin
+
